@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1040902206086",
+    "project_id": "wave-fcdcf",
+    "storage_bucket": "wave-fcdcf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1040902206086:android:be8ee1c6534a03e49f1707",
+        "android_client_info": {
+          "package_name": "com.fatouniang.wavefirebase"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1040902206086-ag1ct27ob3sk07fivj6fskpibnsrg8um.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fatouniang.wavefirebase",
+            "certificate_hash": "a41a27e3d0887daa1ff60b396545cbe837a779df"
+          }
+        },
+        {
+          "client_id": "1040902206086-i92e95jlkgs3nfi9pccsinikva89t8dl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNFvpzdffXzxydJeEisWC572kNW60Ua_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1040902206086-i92e95jlkgs3nfi9pccsinikva89t8dl.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1040902206086-j4q9u4dsv638fg2adm8gc4q5gc8og80a.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.fatouniang.wavefirebase"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
