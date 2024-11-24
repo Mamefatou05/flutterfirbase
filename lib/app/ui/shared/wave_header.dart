@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
-// Define the custom clippers before the WaveHeader class.
 class WaveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     var path = Path();
-    path.lineTo(0, size.height * 0.8);
+    path.lineTo(0, size.height * 0.85); // Ajusté pour une vague plus haute
 
-    var firstControlPoint = Offset(size.width * 0.25, size.height * 0.95);
+    var firstControlPoint = Offset(size.width * 0.25, size.height);
     var firstEndPoint = Offset(size.width * 0.5, size.height * 0.85);
     path.quadraticBezierTo(
       firstControlPoint.dx,
@@ -16,7 +15,7 @@ class WaveClipper extends CustomClipper<Path> {
       firstEndPoint.dy,
     );
 
-    var secondControlPoint = Offset(size.width * 0.75, size.height * 0.75);
+    var secondControlPoint = Offset(size.width * 0.75, size.height * 0.7);
     var secondEndPoint = Offset(size.width, size.height * 0.85);
     path.quadraticBezierTo(
       secondControlPoint.dx,
@@ -38,10 +37,10 @@ class WaveClipper2 extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     var path = Path();
-    path.lineTo(0, size.height * 0.7);
+    path.lineTo(0, size.height * 0.80);
 
-    var firstControlPoint = Offset(size.width * 0.25, size.height * 0.85);
-    var firstEndPoint = Offset(size.width * 0.5, size.height * 0.75);
+    var firstControlPoint = Offset(size.width * 0.25, size.height * 0.95);
+    var firstEndPoint = Offset(size.width * 0.5, size.height * 0.80);
     path.quadraticBezierTo(
       firstControlPoint.dx,
       firstControlPoint.dy,
@@ -50,7 +49,7 @@ class WaveClipper2 extends CustomClipper<Path> {
     );
 
     var secondControlPoint = Offset(size.width * 0.75, size.height * 0.65);
-    var secondEndPoint = Offset(size.width, size.height * 0.75);
+    var secondEndPoint = Offset(size.width, size.height * 0.80);
     path.quadraticBezierTo(
       secondControlPoint.dx,
       secondControlPoint.dy,
@@ -67,19 +66,18 @@ class WaveClipper2 extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
-// Your WaveHeader widget follows
 class WaveHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
   final bool showBackButton;
-  final Widget? trailing; // Nouveau paramètre pour les contrôles
+  final Widget? trailing;
 
   const WaveHeader({
     Key? key,
     required this.title,
     this.subtitle,
     this.showBackButton = true,
-    this.trailing, // Ajout du paramètre trailing
+    this.trailing,
   }) : super(key: key);
 
   @override
@@ -88,11 +86,11 @@ class WaveHeader extends StatelessWidget {
       height: 200,
       child: Stack(
         children: [
-          // Première couche de gradient plus foncé
+          // Première vague (gradient)
           ClipPath(
             clipper: WaveClipper(),
             child: Container(
-              height: 180,
+              height: 200, // Augmenté à la hauteur totale
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -105,82 +103,64 @@ class WaveHeader extends StatelessWidget {
               ),
             ),
           ),
-
-          // Deuxième couche de vague plus claire et transparente
+          // Deuxième vague (overlay)
           ClipPath(
             clipper: WaveClipper2(),
             child: Container(
-              height: 180,
+              height: 200, // Augmenté à la hauteur totale
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.1),
               ),
             ),
           ),
-
-          // Bouton retour et contrôles
+          // Contenu
           Positioned(
             top: 40,
             left: 16,
             right: 16,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (showBackButton)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.arrow_back, color: Color(0xFF6B35E8)),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
-                if (trailing != null) trailing!, // Ajout des contrôles
-              ],
-            ),
-          ),
-
-          // Contenu central (titre et sous-titre)
-          Positioned(
-            top: showBackButton ? 90 : 40, // Ajustement de la position selon la présence du bouton retour
-            left: 0,
-            right: 0,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(width: 8),
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 if (subtitle != null)
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 20,
-                    ),
-                    child: Text(
-                      subtitle!,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          subtitle!,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        if (trailing != null) trailing!,
+                      ],
                     ),
                   ),
               ],
             ),
           ),
+          // Bouton retour si nécessaire
+          if (showBackButton)
+            Positioned(
+              top: 40,
+              left: 16,
+              child: IconButton(
+                icon: Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
         ],
       ),
     );

@@ -1,32 +1,30 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart'; // Assurez-vous d'importer GetX
 import 'package:wavefirebase/app/ui/widget/receiver_field.dart';
 
 import '../../../core/services/ContactService.dart';
+import '../../modules/transaction/controllers/transaction_controller.dart';
 import '../shared/custom_text_field.dart';
 
 class MultipleTransferForm extends StatelessWidget {
   final TextEditingController amountController;
-  final List<TextEditingController> multiReceiverControllers;
-  final void Function(int) onRemoveReceiver;
   final VoidCallback onAddReceiver;
   final VoidCallback onTransfer;
-  final void Function(List<String>, int) onContactsSelected;
   final ContactService contactService;
 
   const MultipleTransferForm({
     Key? key,
     required this.amountController,
-    required this.multiReceiverControllers,
-    required this.onRemoveReceiver,
     required this.onAddReceiver,
     required this.onTransfer,
-    required this.onContactsSelected,
     required this.contactService,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Récupérez le contrôleur
+    final TransactionController controller = Get.find();
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -40,21 +38,22 @@ class MultipleTransferForm extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            ListView.builder(
+            // Utilisez Obx pour écouter les changements de la liste des contrôleurs
+            Obx(() => ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: multiReceiverControllers.length,
+              itemCount: controller.multiReceiverControllers.length,
               itemBuilder: (context, index) {
                 return ReceiverField(
-                  controller: multiReceiverControllers[index],
+                  controller: controller.multiReceiverControllers[index],
                   index: index,
-                  showRemoveButton: multiReceiverControllers.length > 1,
-                  onRemove: () => onRemoveReceiver(index),
+                  showRemoveButton: controller.multiReceiverControllers.length > 1,
+                  onRemove: () => controller.removeReceiverField(index),
                   contactService: contactService,
-                  onContactsSelected: (phones) => onContactsSelected(phones, index),
+                  onContactsSelected: (phones) => controller.updateSelectedPhoneNumbers(phones, index),
                 );
               },
-            ),
+            )),
 
             const SizedBox(height: 16),
 

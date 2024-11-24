@@ -9,15 +9,20 @@ import '../controllers/deposit_controller.dart';
 
 
 class DepositView extends GetView<DepositController> {
-  final String? initialPhoneNumber;
 
-  const DepositView({Key? key, this.initialPhoneNumber}) : super(key: key);
+  const DepositView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Récupérer le numéro de téléphone à partir des paramètres
+    final String? initialPhoneNumber = Get.parameters['initialPhoneNumber'];
+
+    // Utiliser WidgetsBinding pour s'assurer que le texte est défini après le rendu initial
     if (initialPhoneNumber != null) {
-      controller.clientPhoneController.text = initialPhoneNumber!;
-      controller.searchClient();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.clientPhoneController.text = initialPhoneNumber;
+        controller.searchClient();
+      });
     }
 
     return Scaffold(

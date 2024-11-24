@@ -29,11 +29,8 @@ class MultipleTransferView extends StatelessWidget {
         }
         return MultipleTransferForm(
           amountController: controller.amountController,
-          multiReceiverControllers: controller.multiReceiverControllers,
-          onRemoveReceiver: controller.removeReceiverField,
           onAddReceiver: controller.addReceiverField,
           onTransfer: () => controller.performTransfer(isMultiple: true),
-          onContactsSelected: controller.updateSelectedPhoneNumbers,
           contactService: contactService,
         );
       }),

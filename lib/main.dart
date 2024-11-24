@@ -2,11 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:wavefirebase/app/modules/home/views/qr_view.dart';
 import 'app/modules/home/bindings/home_binding.dart';
 import 'app/modules/transaction/bindings/deposit_binding.dart';
+import 'app/modules/transaction/bindings/scheduled_transfert_binding.dart';
 import 'app/modules/transaction/views/deposit_view.dart';
 import 'app/modules/transaction/bindings/transaction_binding.dart';
 import 'app/modules/transaction/views/multiple_transfert_view.dart';
+import 'app/modules/transaction/views/scheduled_transfert_view.dart';
+import 'app/modules/transaction/views/transaction_detail_view.dart';
+import 'app/modules/transaction/views/transaction_list_view.dart';
 import 'app/modules/transaction/views/transfert_view.dart';
 import 'firebase_options.dart'; // Importez les options générées
 import 'app/modules/auth/bindings/auth_binding.dart';
@@ -67,10 +72,27 @@ class MyApp extends StatelessWidget {
           page: () => HomeView(),
           binding: HomeBinding(), // Liaison ici
         ),
+
+        GetPage(
+          name: '/qr',
+          page: () => QRScreen(),
+          binding: HomeBinding(), // Liaison ici
+        ),
+
+        GetPage(
+          name: '/transaction/deposit',
+          page: () => const DepositView(),
+          binding: DepositBinding(),
+        ),
+        GetPage(
+          name: '/planification/create',
+          page: () => ScheduledTransferView(),
+          binding: ScheduledTransferBinding(),
+        ),
         GetPage(
           name: '/transaction/single',
-          page: () => TransfertView(),
-          binding: TransactionBinding(), // Liaison ici
+          page: () => const TransfertView(),
+          binding: TransactionBinding(),
         ),
         GetPage(
           name: '/transaction/multiple',
@@ -78,10 +100,16 @@ class MyApp extends StatelessWidget {
           binding: TransactionBinding(), // Liaison ici
         ),
         GetPage(
-          name: '/transaction/deposit',
-          page: () => const DepositView(),
-          binding: DepositBinding(),
+          name: '/transaction/list',
+          page: () => TransactionsListPage(),
+          binding: TransactionBinding(), // Liaison ici
+        ), GetPage(
+          name: '/transaction/details',
+          page: () => TransactionDetailsPage(),
+          binding: TransactionBinding(), // Liaison ici
         ),
+
+
       ],
     );
   }

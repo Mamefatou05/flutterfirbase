@@ -24,21 +24,14 @@ class HomeView extends GetView<HomeController> {
                   ? '${controller.currentUser.value?.balance ?? 0} F'
                   : '****** F',
               showBackButton: false,
-              trailing: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                        controller.isBalanceVisible.value
-                            ? Icons.visibility
-                            : Icons.visibility_off
-                    ),
-                    onPressed: controller.toggleBalanceVisibility,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.qr_code),
-                    onPressed: () => Get.to(() => QRScreen()),
-                  ),
-                ],
+              trailing: IconButton(
+                icon: Icon(
+                  controller.isBalanceVisible.value
+                      ? Icons.visibility
+                      : Icons.visibility_off,
+                  color: Colors.white,
+                ),
+                onPressed: controller.toggleBalanceVisibility,
               ),
             )),
             Expanded(

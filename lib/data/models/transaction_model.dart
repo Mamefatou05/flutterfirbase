@@ -9,6 +9,8 @@ class TransactionModel {
   final Timestamp timestamp; // Directement de type Timestamp
   final TransactionType type;
   final TransactionStatus status;
+  final bool isReversible; // Nouveau champ
+
 
   TransactionModel({
     required this.id,
@@ -18,6 +20,8 @@ class TransactionModel {
     required this.timestamp,
     required this.type,
     required this.status,
+    this.isReversible = true,
+
   });
 
   // Conversion en JSON pour Firestore
@@ -30,6 +34,7 @@ class TransactionModel {
       'timestamp': timestamp, // Pas besoin de conversion
       'type': type.toString().split('.').last,
       'status': status.toString().split('.').last,
+      'isReversible': isReversible, // Pas besoin de conversion
     };
   }
 
@@ -43,6 +48,8 @@ class TransactionModel {
       timestamp: json['timestamp'] as Timestamp, // Pas de conversion nécessaire
       type: _parseTransactionType(json['type']),
       status: _parseTransactionStatus(json['status']),
+      isReversible: json['isReversible'] ?? true,
+
     );
   }
 
@@ -76,5 +83,17 @@ class TransactionModel {
       );
     }
     return TransactionStatus.UNKNOWN;
+  }
+
+  // Méthode pour vérifier si la transaction peut être annulée
+  bool canBeReversed() {
+    final now = Timestamp.now();
+    final thirtyMinutesAgo = Timestamp.fromDate(
+        DateTime.now().subtract(Duration(minutes: 30))
+    );
+
+    return isReversible &&
+        status == TransactionStatus.COMPLETED &&
+        timestamp.compareTo(thirtyMinutesAgo) > 0;
   }
 }

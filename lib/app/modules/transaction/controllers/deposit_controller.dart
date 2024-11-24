@@ -17,10 +17,11 @@ class DepositController extends GetxController {
   })  : _authService = authService,
         _transactionService = transactionService;
 
-  final clientPhoneController = TextEditingController();
-  final amountController = TextEditingController();
+  late final TextEditingController clientPhoneController;
+  late final TextEditingController amountController;
   final isLoading = false.obs;
   final clientUser = Rxn<AppUser>();
+
 
   Future<void> searchClient() async {
     if (clientPhoneController.text.isEmpty) return;
@@ -126,6 +127,16 @@ class DepositController extends GetxController {
     amountController.clear();
     clientUser.value = null;
   }
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Initialisation des contrôleurs dans onInit
+    clientPhoneController = TextEditingController();
+    amountController = TextEditingController();
+  }
+
+
 
   @override
   void onClose() {

@@ -10,14 +10,26 @@ class FirebaseService {
 
 
   // CRUD Operations de base
-  Future<DocumentReference> createDocument(String collectionPath, Map<String, dynamic> data) async {
+  Future<DocumentReference> createDocument(
+      String collectionPath,
+      Map<String, dynamic> data, {
+        String? docId, // ID personnalisé, facultatif
+      }) async {
     try {
-      return await _firestore.collection(collectionPath).add(data);
+      if (docId != null && docId.isNotEmpty) {
+        // Utiliser un ID personnalisé pour le document
+        await _firestore.collection(collectionPath).doc(docId).set(data);
+        return _firestore.collection(collectionPath).doc(docId);
+      } else {
+        // Créer le document avec un ID généré automatiquement
+        return await _firestore.collection(collectionPath).add(data);
+      }
     } catch (e) {
       print('Erreur lors de la création du document : $e');
       throw Exception('Erreur lors de la création du document');
     }
   }
+
   Future<void> setDocument(
       String collectionPath,
       String docId,

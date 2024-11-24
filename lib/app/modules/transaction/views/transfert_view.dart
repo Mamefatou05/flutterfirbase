@@ -8,9 +8,7 @@ import '../../../ui/widget/contact/ContactPickerWidget.dart';
 import '../controllers/transaction_controller.dart';
 
 class TransfertView extends StatelessWidget {
-  final String? initialReceiverPhone;
-
-  const TransfertView({Key? key, this.initialReceiverPhone}) : super(key: key);
+  const TransfertView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +16,14 @@ class TransfertView extends StatelessWidget {
     final TransactionController controller = Get.find();
     final ContactService contactService = Get.find();
 
-    // Initialiser le numéro de téléphone si fourni
+    // Récupérer le numéro de téléphone à partir des paramètres
+    final String? initialReceiverPhone = Get.parameters['initialReceiverPhone'];
+
+    // Utiliser WidgetsBinding pour s'assurer que le texte est défini après le rendu initial
     if (initialReceiverPhone != null) {
-      controller.receiverController.text = initialReceiverPhone!;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.receiverController.text = initialReceiverPhone;
+      });
     }
 
     return Scaffold(

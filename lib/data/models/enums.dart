@@ -8,12 +8,19 @@ enum TransactionType {
   DEPOT,
   RETRAIT,
   TRANSFERT,
-  PAIEMENT, UNKNOWN
+  PAIEMENT,
+  UNKNOWN,
+  SCHEDULED_TRANSFER
 }
 
 enum TransactionStatus {
   PENDING,
   COMPLETED,
   FAILED,
-  ANNULEE, UNKNOWN,
+  CANCELLED, UNKNOWN,
+}
+enum ScheduleFrequency {
+  DAILY,
+  WEEKLY,
+  MONTHLY
 }
