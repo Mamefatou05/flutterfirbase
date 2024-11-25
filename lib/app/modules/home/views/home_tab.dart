@@ -52,7 +52,7 @@ class HomeTab extends GetView<HomeController> {
       {
         'icon': Icons.expand,
         'label': 'Déplafonné',
-        'route': '/transaction/unlimit'
+        'route': '/transaction/limits'
       },
     ]
         : [

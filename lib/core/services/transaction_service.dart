@@ -19,6 +19,14 @@ class TransactionService {
 
 
   Future<void> createTransaction(TransactionModel transaction) async {
+    final isWithinLimit = await checkTransactionLimit(
+        transaction.senderId,
+        transaction.amount
+    );
+
+    if (!isWithinLimit) {
+      throw Exception('Limite de transaction dépassée');
+    }
     try {
       await _firebaseService.setDocument(
           'transactions',
@@ -31,11 +39,10 @@ class TransactionService {
     }
   }
 
-  Future<List<TransactionModel>> getUserTransactions(
-      String userId, {
-        int limit = 10,
-        TransactionModel? lastTransaction,
-      }) async {
+  Future<List<TransactionModel>> getUserTransactions(String userId, {
+    int limit = 10,
+    TransactionModel? lastTransaction,
+  }) async {
     try {
       // Récupérer les documents de transactions de Firebase
       final senderDocs = await _firebaseService.getDocumentsWhere(
@@ -73,7 +80,8 @@ class TransactionService {
 
       // Mapper les documents en objets TransactionModel, en ignorant ceux sans timestamp
       return allDocs
-          .where((doc) => doc['timestamp'] != null) // Filtrer les documents avec timestamp
+          .where((doc) =>
+      doc['timestamp'] != null) // Filtrer les documents avec timestamp
           .map((doc) {
         return TransactionModel.fromJson(doc);
       }).toList();
@@ -83,7 +91,8 @@ class TransactionService {
     }
   }
 
-  Future<bool> cancelTransaction(TransactionModel transaction, AppUser currentUser) async {
+  Future<bool> cancelTransaction(TransactionModel transaction,
+      AppUser currentUser) async {
     try {
       print('debut de l\'anulation de la transaction');
       // Vérifier si la transaction peut être annulée
@@ -91,7 +100,8 @@ class TransactionService {
         throw Exception('Transaction ne peut pas être annulée');
       }
 
-      await FirebaseFirestore.instance.runTransaction((firestoreTransaction) async {
+      await FirebaseFirestore.instance.runTransaction((
+          firestoreTransaction) async {
         // Annuler la transaction côté expéditeur
         await _firebaseService.updateDocument(
             'users',
@@ -150,13 +160,15 @@ class TransactionService {
         bool matchesEndDate = endDate == null ||
             transaction.timestamp.toDate().isBefore(endDate);
 
-        return matchesType && matchesStatus && matchesStartDate && matchesEndDate;
+        return matchesType && matchesStatus && matchesStartDate &&
+            matchesEndDate;
       }).toList();
     } catch (e) {
       print('Erreur lors du filtrage des transactions : $e');
       throw Exception('Impossible de filtrer les transactions');
     }
   }
+
   void _listenToTransactions() {
     FirebaseFirestore.instance
         .collection('transactions')
@@ -198,5 +210,76 @@ class TransactionService {
       _transactionTimers.remove(transactionId);
     });
   }
-}
 
+  Future<bool> checkTransactionLimit(String userId,
+      double transactionAmount) async {
+    try {
+      final user = await _firebaseService.getDocumentById('users', userId);
+      final appUser = AppUser.fromJson(user!);
+
+      // Wait for both totals to resolve
+      final double dailyTotal = await getDailyTransactionsTotal(userId);
+      final double monthlyTotal = await getMonthlyTransactionsTotal(userId);
+
+      return (dailyTotal + transactionAmount <=
+          appUser.transactionLimits.dailyLimit) &&
+          (monthlyTotal + transactionAmount <=
+              appUser.transactionLimits.monthlyLimit);
+    } catch (e) {
+      throw Exception('Erreur lors de la vérification des limites');
+    }
+  }
+
+  Future<double> getDailyTransactionsTotal(String userId) async {
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+
+    final transactions = await filterTransactions(
+        userId: userId,
+        startDate: todayStart,
+        type: TransactionType.TRANSFERT,
+        status: TransactionStatus.COMPLETED
+    );
+
+    return transactions.fold<double>(
+        0.0, (sum, transaction) => sum + transaction.amount);
+  }
+
+  Future<double> getMonthlyTransactionsTotal(String userId) async {
+    final now = DateTime.now();
+    final monthStart = DateTime(now.year, now.month, 1);
+
+    final transactions = await filterTransactions(
+        userId: userId,
+        startDate: monthStart,
+        type: TransactionType.TRANSFERT,
+        status: TransactionStatus.COMPLETED
+    );
+
+    return transactions.fold<double>(
+        0.0, (sum, transaction) => sum + transaction.amount);
+  }
+
+  Future<void> updateUserTransactionLimits({
+    required String userId,
+    double? dailyLimit,
+    double? monthlyLimit,
+  }) async {
+    try {
+      final user = await _firebaseService.getDocumentById('users', userId);
+      final appUser = AppUser.fromJson(user!);
+
+      final updates = {
+        'transactionLimits': {
+          'dailyLimit': dailyLimit ?? appUser.transactionLimits.dailyLimit,
+          'monthlyLimit': monthlyLimit ??
+              appUser.transactionLimits.monthlyLimit,
+        }
+      };
+
+      await _firebaseService.updateDocument('users', userId, updates);
+    } catch (e) {
+      throw Exception('Impossible de mettre à jour les limites');
+    }
+  }
+}

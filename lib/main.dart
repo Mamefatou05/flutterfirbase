@@ -6,13 +6,17 @@ import 'package:wavefirebase/app/modules/home/views/qr_view.dart';
 import 'app/modules/home/bindings/home_binding.dart';
 import 'app/modules/transaction/bindings/deposit_binding.dart';
 import 'app/modules/transaction/bindings/scheduled_transfert_binding.dart';
+import 'app/modules/transaction/bindings/transaction_limit_binding.dart';
+import 'app/modules/transaction/bindings/withdraw_binding.dart';
 import 'app/modules/transaction/views/deposit_view.dart';
 import 'app/modules/transaction/bindings/transaction_binding.dart';
 import 'app/modules/transaction/views/multiple_transfert_view.dart';
 import 'app/modules/transaction/views/scheduled_transfert_view.dart';
 import 'app/modules/transaction/views/transaction_detail_view.dart';
+import 'app/modules/transaction/views/transaction_limit_view.dart';
 import 'app/modules/transaction/views/transaction_list_view.dart';
 import 'app/modules/transaction/views/transfert_view.dart';
+import 'app/modules/transaction/views/withdrawal_view.dart';
 import 'firebase_options.dart'; // Importez les options générées
 import 'app/modules/auth/bindings/auth_binding.dart';
 import 'app/modules/auth/views/login_view.dart';
@@ -107,6 +111,15 @@ class MyApp extends StatelessWidget {
           name: '/transaction/details',
           page: () => TransactionDetailsPage(),
           binding: TransactionBinding(), // Liaison ici
+        ),
+        GetPage(
+          name: '/transaction/limits',
+          page: () => TransactionLimitView(),
+          binding: TransactionLimitBinding(),
+        ),GetPage(
+          name: '/transaction/withdraw',
+          page: () => WithdrawalView(),
+          binding: WithdrawBinding(), // Liaison ici
         ),
 
 
