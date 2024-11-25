@@ -23,6 +23,8 @@ class TransactionController extends GetxController {
   late final TextEditingController receiverController;
   late final TextEditingController amountController;
   late final TextEditingController amountReceivedController;
+  final canShowCancelButton = false.obs;
+
 
   // Modification pour les contrôleurs multiples
   final multiReceiverControllers = <TextEditingController>[].obs;
@@ -132,8 +134,50 @@ class TransactionController extends GetxController {
 
     return validReceivers;
   }
+  Future<void> performTransfer({bool isMultiple = false}) async {
+    try {
+      isLoading.value = true;
+      final amount = double.tryParse(amountController.text);
+      if (amount == null) throw Exception('Montant invalide');
 
-  Future<void> _processTransfer(AppUser sender, Map<String, AppUser> receivers, double amount) async {
+      final phones = isMultiple ? getUniquePhoneNumbers() : [receiverController.text];
+      final receivers = await _validateTransfer(amount, phones);
+
+      final currentUser = await _authService.getCurrentUserData();
+      if (currentUser == null) throw Exception('Utilisateur non connecté');
+
+      // Créer une variable pour stocker la dernière transaction
+      TransactionModel? lastTransaction;
+
+      // Utiliser _processTransfer mais modifier la méthode pour retourner la dernière transaction
+      await _processTransfer(currentUser, receivers, amount).then((transaction) {
+        lastTransaction = transaction;
+      });
+
+      Get.snackbar(
+        'Succès',
+        isMultiple ? 'Transferts multiples effectués' : 'Transfert effectué',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      _resetForm(isMultiple);
+
+      // Navigation vers la page de détails si une transaction a été créée
+      if (lastTransaction != null) {
+        selectTransaction(lastTransaction!);
+      }
+
+    } catch (e) {
+      Get.snackbar('Erreur', e.toString(), snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+// Modifier _processTransfer pour retourner la dernière transaction créée
+  Future<TransactionModel?> _processTransfer(AppUser sender, Map<String, AppUser> receivers, double amount) async {
+    TransactionModel? lastTransaction;
+
     await FirebaseFirestore.instance.runTransaction((transaction) async {
       for (var receiver in receivers.values) {
         final transactionId = FirebaseFirestore.instance.collection('transactions').doc().id;
@@ -159,37 +203,11 @@ class TransactionController extends GetxController {
         );
 
         await _transactionService.createTransaction(transactionModel);
+        lastTransaction = transactionModel; // Garder une référence à la dernière transaction
       }
     });
-  }
 
-  Future<void> performTransfer({bool isMultiple = false}) async {
-    try {
-      isLoading.value = true;
-      final amount = double.tryParse(amountController.text);
-      if (amount == null) throw Exception('Montant invalide');
-
-      final phones = isMultiple ? getUniquePhoneNumbers() : [receiverController.text];
-      final receivers = await _validateTransfer(amount, phones);
-
-      final currentUser = await _authService.getCurrentUserData();
-      if (currentUser == null) throw Exception('Utilisateur non connecté');
-
-      await _processTransfer(currentUser, receivers, amount);
-
-      Get.snackbar(
-        'Succès',
-        isMultiple ? 'Transferts multiples effectués' : 'Transfert effectué',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-
-      _resetForm(isMultiple);
-
-    } catch (e) {
-      Get.snackbar('Erreur', e.toString(), snackPosition: SnackPosition.BOTTOM);
-    } finally {
-      isLoading.value = false;
-    }
+    return lastTransaction;
   }
 
   void _resetForm(bool isMultiple) {
@@ -216,8 +234,17 @@ class TransactionController extends GetxController {
     loadTransactions();
     // Ajout du premier champ de destinataire pour les transferts multiples
     addReceiverField();
+    ever(selectedTransaction, (_) {
+      checkCancelButtonVisibility();
+    });
   }
-
+  // Modifier la méthode selectTransaction pour mettre à jour la visibilité du bouton
+  void selectTransaction(TransactionModel transaction) {
+    selectedTransaction.value = transaction;
+    // Charger les détails des utilisateurs
+    loadTransactionUserDetails(transaction);
+    Get.toNamed('/transaction/details');
+  }
   @override
   void onClose() {
     // Disposer de tous les contrôleurs
@@ -319,12 +346,7 @@ class TransactionController extends GetxController {
     }
   }
 
-  void selectTransaction(TransactionModel transaction) {
-    selectedTransaction.value = transaction;
-    // Charger les détails des utilisateurs
-    loadTransactionUserDetails(transaction);
-    Get.toNamed('/transaction/details');
-  }
+
 
   Future<void> loadTransactions() async {
     try {
@@ -358,6 +380,17 @@ class TransactionController extends GetxController {
   double calculateFees(double amount, int receiverCount) {
     const double feePercentage = 0.01; // 1% de frais
     return amount * feePercentage * receiverCount;
+  }
+
+  // Ajout d'une méthode pour vérifier si l'utilisateur peut annuler la transaction
+  Future<void> checkCancelButtonVisibility() async {
+    final transaction = selectedTransaction.value;
+    final currentUser = await _authService.getCurrentUserData();
+
+    canShowCancelButton.value = transaction != null &&
+        transaction.canBeReversed() &&
+        currentUser != null &&
+        transaction.senderId == currentUser.id;
   }
 
 }

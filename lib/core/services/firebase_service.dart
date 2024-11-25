@@ -1,12 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+
 
 
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();  // Ajout de l'initialisation
+  final FacebookAuth _facebookAuth = FacebookAuth.instance;
+
 
 
   // CRUD Operations de base
@@ -206,8 +210,90 @@ class FirebaseService {
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
+
+
+  // Nouvelle méthode pour l'authentification Facebook
+  Future<UserCredential> signInWithFacebook() async {
+    try {
+      // Déconnexion préalable pour éviter les conflits
+      await _facebookAuth.logOut();
+
+      // Déclencher le flux de connexion Facebook
+      final LoginResult loginResult = await _facebookAuth.login(
+        permissions: ['email', 'public_profile'],
+        loginBehavior: LoginBehavior.dialogOnly, // Force l'affichage du dialogue de sélection
+      );
+
+      if (loginResult.status != LoginStatus.success) {
+        throw Exception('Échec de la connexion Facebook: ${loginResult.status}');
+      }
+
+      // Obtenir le token d'accès
+      final AccessToken? accessToken = loginResult.accessToken;
+
+      if (accessToken == null) {
+        throw Exception('Token d\'accès Facebook non obtenu');
+      }
+
+      // Créer un credential Firebase avec le token Facebook
+      final OAuthCredential credential = FacebookAuthProvider.credential(
+        accessToken.token,
+      );
+
+      // Connecter avec Firebase
+      final userCredential = await _auth.signInWithCredential(credential);
+
+      // Obtenir les informations supplémentaires de l'utilisateur Facebook
+      final userData = await _facebookAuth.getUserData(
+        fields: "name,email,picture",
+      );
+
+      // Si vous voulez stocker des informations supplémentaires dans Firestore
+      if (userCredential.user != null) {
+        await _firestore.collection('users').doc(userCredential.user!.uid).set({
+          'facebookId': userData['id'],
+          'displayName': userData['name'],
+          'email': userData['email'],
+          'photoURL': userData['picture']?['data']?['url'],
+          'lastLoginProvider': 'facebook',
+          'lastLogin': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      print('FirebaseAuthException pendant la connexion Facebook: ${e.code} - ${e.message}');
+      switch (e.code) {
+        case 'account-exists-with-different-credential':
+          throw Exception('Ce compte existe déjà avec une autre méthode de connexion. Veuillez utiliser une autre méthode.');
+        case 'invalid-credential':
+          throw Exception('Les informations d\'identification Facebook sont invalides.');
+        case 'operation-not-allowed':
+          throw Exception('La connexion Facebook n\'est pas activée dans Firebase.');
+        case 'user-disabled':
+          throw Exception('Ce compte utilisateur a été désactivé.');
+        case 'user-not-found':
+          throw Exception('Aucun compte utilisateur trouvé.');
+        default:
+          throw Exception('Erreur lors de la connexion Facebook: ${e.message}');
+      }
+    } catch (e) {
+      print('Erreur lors de la connexion Facebook: $e');
+      throw Exception('Erreur inattendue lors de la connexion Facebook');
+    }
+  }
+
+  // Méthode pour vérifier si un utilisateur est connecté avec Facebook
+  Future<bool> isFacebookSignedIn() async {
+    final AccessToken? accessToken = await _facebookAuth.accessToken;
+    return accessToken != null && !accessToken.isExpired;
+  }
+
+  // Mise à jour de la méthode de déconnexion pour inclure Facebook
   Future<void> logout() async {
     try {
+      await _facebookAuth.logOut();
+      await _googleSignIn.signOut();
       await _auth.signOut();
     } catch (e) {
       print('Erreur lors de la déconnexion : $e');

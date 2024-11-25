@@ -4,28 +4,43 @@ import 'package:get/get.dart';
 import '../../../../data/models/enums.dart';
 import '../../../../data/models/transaction_model.dart';
 import '../../../../data/models/user_model.dart';
+import '../../../ui/shared/custom_footer.dart';
+import '../../../ui/shared/custom_text_field.dart';
+import '../../../ui/shared/wave_header.dart';
 import '../controllers/transaction_controller.dart';
 class TransactionDetailsPage extends GetView<TransactionController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Détails de la Transaction'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildTransactionDetails(),
-            SizedBox(height: 16),
-            _buildSenderDetails(),
-            SizedBox(height: 16),
-            _buildReceiverDetails(),
-            SizedBox(height: 24),
-            _buildCancelButton(),
-          ],
-        ),
+      body: Column(
+        children: [
+          // Remplacement de l'AppBar par WaveHeader
+          WaveHeader(
+            title: 'Détails de la Transaction',
+            showBackButton: true,
+          ),
+
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTransactionDetails(),
+                  SizedBox(height: 16),
+                  _buildSenderDetails(),
+                  SizedBox(height: 16),
+                  _buildReceiverDetails(),
+                  SizedBox(height: 24),
+                  _buildCancelButton(),
+                ],
+              ),
+            ),
+          ),
+
+          // Ajout du CustomFooter
+          CustomFooter(currentRoute: '/transaction/details'),
+        ],
       ),
     );
   }
@@ -52,24 +67,48 @@ class TransactionDetailsPage extends GetView<TransactionController> {
                 ),
               ),
               Divider(),
-              _buildDetailRow('ID', transaction.id),
-              _buildDetailRow(
-                'Montant',
-                '${transaction.amount.toStringAsFixed(2)} €',
-                valueColor: Colors.green,
+              // Utilisation de CustomTextField en mode lecture seule pour chaque détail
+              CustomTextField(
+                controller: TextEditingController(text: transaction.id),
+                label: 'ID',
+                prefixIcon: Icons.numbers,
+                readOnly: true,
               ),
-              _buildDetailRow(
-                'Type',
-                transaction.type.toString().split('.').last,
+              SizedBox(height: 8),
+              CustomTextField(
+                controller: TextEditingController(
+                    text: '${transaction.amount.toStringAsFixed(2)} €'
+                ),
+                label: 'Montant',
+                prefixIcon: Icons.euro,
+                readOnly: true,
               ),
-              _buildDetailRow(
-                'Statut',
-                transaction.status.toString().split('.').last,
-                valueColor: _getStatusColor(transaction.status),
+              SizedBox(height: 8),
+              CustomTextField(
+                controller: TextEditingController(
+                    text: transaction.type.toString().split('.').last
+                ),
+                label: 'Type',
+                prefixIcon: Icons.category,
+                readOnly: true,
               ),
-              _buildDetailRow(
-                'Date',
-                _formatDate(transaction.timestamp.toDate()),
+              SizedBox(height: 8),
+              CustomTextField(
+                controller: TextEditingController(
+                    text: transaction.status.toString().split('.').last
+                ),
+                label: 'Statut',
+                prefixIcon: Icons.info,
+                readOnly: true,
+              ),
+              SizedBox(height: 8),
+              CustomTextField(
+                controller: TextEditingController(
+                    text: _formatDate(transaction.timestamp.toDate())
+                ),
+                label: 'Date',
+                prefixIcon: Icons.calendar_today,
+                readOnly: true,
               ),
             ],
           ),
@@ -77,7 +116,6 @@ class TransactionDetailsPage extends GetView<TransactionController> {
       );
     });
   }
-
   Widget _buildSenderDetails() {
     return Obx(() {
       final sender = controller.senderDetails.value;
@@ -94,8 +132,7 @@ class TransactionDetailsPage extends GetView<TransactionController> {
 
   Widget _buildCancelButton() {
     return Obx(() {
-      final transaction = controller.selectedTransaction.value;
-      if (transaction == null || !transaction.canBeReversed()) {
+      if (!controller.canShowCancelButton.value) {
         return SizedBox.shrink();
       }
 

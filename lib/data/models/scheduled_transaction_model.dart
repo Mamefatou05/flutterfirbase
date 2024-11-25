@@ -28,7 +28,7 @@ class ScheduledTransactionModel {
       id: json['id'],
       senderId: json['senderId'],
       receiverPhone: json['receiverPhone'],
-      amount: json['amount'],
+      amount: (json['amount'] is int) ? (json['amount'] as int).toDouble() : json['amount'],
       frequency: ScheduleFrequency.values.firstWhere(
               (e) => e.toString() == json['frequency']
       ),
@@ -73,4 +73,5 @@ class ScheduledTransactionModel {
     return next;
   }
 }
+
 

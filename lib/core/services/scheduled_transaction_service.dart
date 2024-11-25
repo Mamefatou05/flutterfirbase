@@ -36,7 +36,6 @@ class ScheduledTransactionService {
   Future<void> _checkAndExecuteScheduledTransactions() async {
     try {
       final now = DateTime.now();
-
       // Récupérer toutes les transactions planifiées actives
       final scheduledTransactions = await _firebaseService.getDocumentsWhere(
         'scheduled_transactions',

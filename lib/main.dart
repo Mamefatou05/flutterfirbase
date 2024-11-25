@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:wavefirebase/app/modules/home/views/qr_view.dart';
+import 'app/modules/auth/bindings/profile_binding.dart';
+import 'app/modules/auth/views/complete_profile_view.dart';
 import 'app/modules/home/bindings/home_binding.dart';
 import 'app/modules/transaction/bindings/deposit_binding.dart';
 import 'app/modules/transaction/bindings/scheduled_transfert_binding.dart';
@@ -120,6 +122,11 @@ class MyApp extends StatelessWidget {
           name: '/transaction/withdraw',
           page: () => WithdrawalView(),
           binding: WithdrawBinding(), // Liaison ici
+        ),
+        GetPage(
+          name: '/profile/complete',
+          page: () => CompleteProfileView(),
+          binding: ProfileBinding(), // Liaison ici
         ),
 
 

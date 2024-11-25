@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../../data/models/enums.dart';
 import '../../../ui/shared/custom_button.dart';
+import '../../../ui/shared/custom_footer.dart';
 import '../../../ui/shared/custom_text_field.dart';
 import '../../../ui/shared/wave_header.dart';
 import '../controllers/scheduled_transaction_controller.dart';
@@ -12,6 +14,7 @@ class ScheduledTransferView extends StatelessWidget {
   final amountController = TextEditingController();
   final dateController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+  final selectedFrequency = Rx<ScheduleFrequency?>(null);
 
   ScheduledTransferView({Key? key}) : super(key: key);
 
@@ -92,7 +95,7 @@ class ScheduledTransferView extends StatelessWidget {
                               time.minute,
                             );
                             dateController.text =
-                            '${date.day}/${date.month}/${date.year} ${time.format(context)}';
+                                DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
                           }
                         }
                       },
@@ -104,7 +107,7 @@ class ScheduledTransferView extends StatelessWidget {
                       },
                     ),
                     SizedBox(height: 16),
-                    DropdownButtonFormField<ScheduleFrequency>(
+                    Obx(() => DropdownButtonFormField<ScheduleFrequency>(
                       decoration: InputDecoration(
                         labelText: 'Fréquence',
                         prefixIcon: Icon(Icons.repeat),
@@ -112,6 +115,7 @@ class ScheduledTransferView extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
+                      value: selectedFrequency.value,
                       items: ScheduleFrequency.values.map((frequency) {
                         String label;
                         switch (frequency) {
@@ -130,39 +134,28 @@ class ScheduledTransferView extends StatelessWidget {
                           child: Text(label),
                         );
                       }).toList(),
-                      onChanged: (ScheduleFrequency? frequency) {
-                        // Store the selected frequency
+                      onChanged: (frequency) {
+                        selectedFrequency.value = frequency;
                       },
                       validator: (value) {
-                        if (value == null) {
+                        if (selectedFrequency.value == null) {
                           return 'Veuillez sélectionner une fréquence';
                         }
                         return null;
                       },
-                    ),
+                    )),
                     SizedBox(height: 32),
                     Obx(() => CustomButton(
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
-                          // Parse the date string back to DateTime
-                          // This is a simple implementation - you might want to add more robust date parsing
-                          final dateStr = dateController.text.split(' ')[0];
-                          final timeStr = dateController.text.split(' ')[1];
-                          final dateParts = dateStr.split('/');
-                          final timeParts = timeStr.split(':');
-
-                          final executionTime = DateTime(
-                            int.parse(dateParts[2]), // year
-                            int.parse(dateParts[1]), // month
-                            int.parse(dateParts[0]), // day
-                            int.parse(timeParts[0]), // hour
-                            int.parse(timeParts[1]), // minute
-                          );
-
+                          final dateFormat =
+                          DateFormat('dd/MM/yyyy HH:mm');
+                          final executionTime = dateFormat
+                              .parse(dateController.text);
                           controller.createScheduledTransaction(
                             receiverPhone: phoneController.text,
                             amount: double.parse(amountController.text),
-                            frequency: ScheduleFrequency.MONTHLY, // Replace with selected frequency
+                            frequency: selectedFrequency.value!,
                             executionTime: executionTime,
                           );
                         }
@@ -181,6 +174,8 @@ class ScheduledTransferView extends StatelessWidget {
               ),
             ),
           ),
+          CustomFooter(currentRoute: "/planification/create"),
+
         ],
       ),
     );

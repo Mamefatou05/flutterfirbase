@@ -46,7 +46,7 @@ class CustomFooter extends StatelessWidget {
                 context,
                 '/qr',
                 Icons.qr_code_scanner,
-                '',
+                'QR',
                 currentRoute == '/qr',
               ),
             ),

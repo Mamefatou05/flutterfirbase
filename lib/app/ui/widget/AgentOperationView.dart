@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/user_model.dart';
 import '../shared/custom_button.dart';
+import '../shared/custom_footer.dart';
 import '../shared/custom_text_field.dart';
 import '../shared/wave_header.dart';
 
@@ -59,6 +60,7 @@ class AgentOperationView extends StatelessWidget {
                   ),
                 ),
               ),
+              CustomFooter(currentRoute: "/transaction/deposit"),
             ],
           ),
           if (isLoading)

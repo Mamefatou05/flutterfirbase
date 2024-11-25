@@ -53,6 +53,13 @@ class LoginView extends GetView<AuthController> {
                       Icons.g_mobiledata,
                       'Se connecter avec Google',
                     ),
+                    _buildMethodButton(
+                      'facebook',
+                      'Facebook',
+                      Icons.facebook,
+                      'Se connecter avec Facebook',
+                    ),
+
                   ],
 
                   // Formulaire Email
@@ -159,6 +166,10 @@ class LoginView extends GetView<AuthController> {
           if (method == 'google') {
             controller.loginWithGoogle();
           }
+          if (method == 'facebook') {
+            controller.loginWithFacebook();
+          }
+
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

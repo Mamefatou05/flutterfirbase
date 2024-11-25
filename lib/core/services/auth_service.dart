@@ -169,7 +169,26 @@ class AuthService {
 
       if (userCredential.user != null) {
         final userData = await getUserDetails(userCredential.user!.uid);
-        if (userData != null) {
+
+        // Si l'utilisateur n'existe pas encore dans Firestore, créez-le
+        if (userData == null) {
+          final appUser = AppUser(
+            id: userCredential.user!.uid,
+            nomComplet: userCredential.user!.displayName ?? '',
+            email: userCredential.user!.email ?? '',
+            numeroTelephone: '',  // À compléter
+            balance: 0.0,
+            role: Role.CLIENT,
+          );
+
+          await _firebaseService.setDocument(
+            'users',
+            userCredential.user!.uid,
+            appUser.toJson(),
+          );
+
+          return appUser;
+        } else {
           return AppUser.fromJson(userData);
         }
       }
@@ -179,6 +198,22 @@ class AuthService {
       rethrow;
     }
   }
+
+  Future<AppUser?> loginWithFacebook() async {
+    try {
+      final userCredential = await _firebaseService.signInWithFacebook();
+      await _updateUserLoginInfo(userCredential.user);
+      final userData = await getUserDetails(userCredential.user!.uid);
+      if (userData != null) {
+        return AppUser.fromJson(userData);
+      }
+    } catch (e) {
+      print('Erreur lors de la connexion avec Facebook : $e');
+      throw Exception('Connexion avec Facebook échouée');
+    }
+    return null;
+  }
+
   Future<void> _updateUserLoginInfo(User? firebaseUser) async {
     if (firebaseUser != null) {
       final updates = {

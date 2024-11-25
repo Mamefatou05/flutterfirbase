@@ -22,7 +22,7 @@ class HomeTab extends GetView<HomeController> {
             return RecentTransactionsWidget(
               transactions: controller.recentTransactions,
               currentUserId: controller.currentUser.value?.id ?? '',
-              onSeeAllPressed: () => Get.toNamed('/history'),
+              onSeeAllPressed: () => Get.toNamed('/transaction/list'),
             );
           }),
         ],

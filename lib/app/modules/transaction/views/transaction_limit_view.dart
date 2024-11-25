@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../data/models/user_model.dart';
 import '../../../ui/shared/custom_button.dart';
+import '../../../ui/shared/custom_footer.dart';
 import '../../../ui/shared/custom_text_field.dart';
 import '../../../ui/shared/wave_header.dart';
 import '../controllers/transaction_limit_controller.dart';
@@ -32,6 +33,8 @@ class TransactionLimitView extends StatelessWidget {
               ),
             ),
           ),
+          CustomFooter(currentRoute: "/transaction/limits"),
+
         ],
       ),
     );

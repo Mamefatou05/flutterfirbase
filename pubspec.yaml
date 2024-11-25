@@ -42,6 +42,8 @@ dependencies:
   cloud_firestore: ^5.5.0
   google_sign_in: ^6.0.0  # Remplacez par la dernière version disponible
   intl: ^0.18.0 # Make sure the version is appropriate for your Flutter setup
+  flutter_facebook_auth: ^6.0.4  # ou la version la plus récente
+
 
 
 

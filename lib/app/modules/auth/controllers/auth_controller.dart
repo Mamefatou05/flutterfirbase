@@ -81,6 +81,21 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<void> loginWithFacebook() async {
+    try {
+      isLoading.value = true;
+      final user = await _authService.loginWithFacebook();
+      if (user != null) {
+        currentUser.value = user;
+        Get.offAllNamed('/home');
+      }
+    } catch (e) {
+      Get.snackbar('Erreur', 'Échec de la connexion Facebook: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> startPhoneLogin(String phoneNumber) async {
     try {
       isLoading.value = true;
